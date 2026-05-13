@@ -225,9 +225,12 @@ def _parse_price_string(price_str: str) -> float | None:
     """Parse Danish price string '4,09 kr.' → 4.09."""
     if not price_str:
         return None
-    cleaned = re.sub(r"[^\d,.]", "", price_str).replace(",", ".")
+    # Extract the numeric part (e.g. "4,09" from "4,09 kr.")
+    m = re.search(r"(\d+[.,]\d+)", price_str)
+    if not m:
+        return None
     try:
-        return float(cleaned)
+        return float(m.group(1).replace(",", "."))
     except ValueError:
         return None
 
