@@ -12,7 +12,7 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
     # REPLACE_WITH_YOUR_PUBLIC_KEY — paste your SSH public key below.
     ssh_authorized_keys:
-      - "# REPLACE_WITH_YOUR_PUBLIC_KEY"
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH50ByoQQKvvFvn9mXbQxJYvzFbftr7LOh2G8lLIGatH simon@elbilspriser"
 
 # ---------------------------------------------------------------------------
 # Package sources
@@ -78,7 +78,7 @@ write_files:
       User=elbil
       Environment=HOME=/home/elbil
       ExecStart=/bin/bash -c '\
-        git clone REPLACE_WITH_REPO_URL /opt/elbilspriser && \
+        git clone https://github.com/Europeanonion/-elbilspriser.git /opt/elbilspriser && \
         cd /opt/elbilspriser/backend && \
         /home/elbil/.local/bin/uv sync --python python3.12 && \
         /home/elbil/.local/bin/uv run playwright install chromium && \
@@ -107,7 +107,7 @@ runcmd:
   # --- PostgreSQL: create role, database, and extensions ---
   - |
     sudo -u postgres psql <<'SQL'
-      CREATE ROLE elbil WITH LOGIN PASSWORD 'REPLACE_WITH_DB_PASSWORD';
+      CREATE ROLE elbil WITH LOGIN PASSWORD 'xuOLFT26GQoBIaMJVgVxR01sphDAChAR';
       CREATE DATABASE elbilspriser OWNER elbil;
       \c elbilspriser
       CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
