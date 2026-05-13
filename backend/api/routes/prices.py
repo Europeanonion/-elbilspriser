@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["prices"])
 
+_OPERATOR_NAMES: dict[int, str] = {1: "Clever"}
+
 # Haversine-based bounding box pre-filter keeps the query fast without PostGIS.
 # The radius_km constraint is applied approximately via degree conversion;
 # a proper great-circle filter should be added once PostGIS is confirmed available.
@@ -72,9 +74,9 @@ async def list_prices(
 
     return [
         {
-            "station_id": str(row.station_id),
+            "id": str(row.station_id),
             "name": row.name,
-            "operator_id": row.operator_id,
+            "operator": _OPERATOR_NAMES.get(row.operator_id, str(row.operator_id)),
             "price_kwh": float(row.price_kwh) if row.price_kwh is not None else None,
             "price_min": float(row.price_min) if row.price_min is not None else None,
             "session_fee": float(row.session_fee) if row.session_fee is not None else None,

@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["stations"])
 
+_OPERATOR_NAMES: dict[int, str] = {1: "Clever"}
+
 _STATIONS_WITH_PRICE_SQL = text(
     """
     SELECT
@@ -74,12 +76,12 @@ async def list_stations(
 
     return [
         {
-            "station_id": str(row.id),
+            "id": str(row.id),
             "name": row.name,
             "address": row.address,
             "lat": row.lat,
             "lon": row.lon,
-            "operator_id": row.operator_id,
+            "operator": _OPERATOR_NAMES.get(row.operator_id, str(row.operator_id)),
             "connector_types": row.connector_types,
             "updated_at": row.updated_at.isoformat() if row.updated_at else None,
             "price": {
