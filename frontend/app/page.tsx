@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 }
 
 interface Price {
-  station_id: string
+  id: string
   name: string
   operator: string
   price_kwh: number | null

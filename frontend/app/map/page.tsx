@@ -22,7 +22,15 @@ async function getStations(): Promise<Station[]> {
   try {
     const res = await fetch(url, { next: { revalidate: 900 } })
     if (!res.ok) throw new Error(`API ${res.status}`)
-    return res.json()
+    const data: any[] = await res.json()
+    return data.map(s => ({
+      id: s.id,
+      name: s.name,
+      operator: s.operator,
+      lat: s.lat,
+      lon: s.lon,
+      price_kwh: s.price?.price_kwh ?? null,
+    }))
   } catch (err) {
     console.error('Failed to fetch stations:', err)
     return []

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 
 interface Price {
-  station_id: string
+  id: string
   name: string
   operator: string
   price_kwh: number | null
@@ -68,7 +68,7 @@ export function PriceTable({ prices }: { prices: Price[] }) {
                 </TableCell>
               </TableRow>
             ) : sorted.map(p => (
-              <TableRow key={p.station_id}>
+              <TableRow key={p.id}>
                 <TableCell className="font-medium">{p.operator}</TableCell>
                 <TableCell>{p.name}</TableCell>
                 <TableCell className="text-right">{formatDKK(p.price_kwh)}</TableCell>
