@@ -33,7 +33,7 @@ _LATEST_PRICES_SQL = text(
     FROM price_snapshots ps
     JOIN stations s ON s.id = ps.station_id
     WHERE
-        (:operator_id IS NULL OR ps.operator_id = :operator_id)
+        (:operator_id::smallint IS NULL OR ps.operator_id = :operator_id::smallint)
         AND s.lat BETWEEN :lat_min AND :lat_max
         AND s.lon BETWEEN :lon_min AND :lon_max
     ORDER BY ps.station_id, ps.time DESC
