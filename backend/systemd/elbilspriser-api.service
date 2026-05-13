@@ -7,7 +7,7 @@ Type=simple
 User=elbil
 WorkingDirectory=/opt/elbilspriser/backend
 EnvironmentFile=/opt/elbilspriser/.env
-ExecStart=/opt/elbilspriser/.venv/bin/uvicorn api.main:app --host 127.0.0.1 --port 8000
+ExecStart=/opt/elbilspriser/backend/.venv/bin/uvicorn api.main:app --host 127.0.0.1 --port 8000
 Restart=always
 RestartSec=5
 
