@@ -85,17 +85,11 @@ def upgrade() -> None:
         "SELECT create_hypertable('price_snapshots', 'time', if_not_exists => TRUE)"
     )
 
-    # Compress chunks older than 7 days to reduce storage.
-    # Requires TimescaleDB Community Edition or higher.
-    op.execute(
-        "SELECT add_compression_policy('price_snapshots', INTERVAL '7 days')"
-    )
+    # Compression policy omitted — requires TimescaleDB Community Edition.
+    # To enable on Community: ALTER TABLE price_snapshots SET (timescaledb.compress = true);
+    #                         SELECT add_compression_policy('price_snapshots', INTERVAL '7 days');
 
 
 def downgrade() -> None:
-    # Compression policy must be removed before the hypertable can be dropped.
-    op.execute(
-        "SELECT remove_compression_policy('price_snapshots', if_not_exists => TRUE)"
-    )
     op.drop_table("price_snapshots")
     op.drop_table("stations")
