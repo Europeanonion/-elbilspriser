@@ -240,6 +240,8 @@ async def main() -> None:
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
     )
+    # Suppress noisy per-request logs from httpx
+    logging.getLogger("httpx").setLevel(logging.WARNING)
     from db.session import init_engine
     await init_engine()
 
