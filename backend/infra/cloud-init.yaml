@@ -1,0 +1,129 @@
+#cloud-config
+# Hetzner CX32 — Debian 12 (Bookworm)
+# Replace every value marked REPLACE_WITH_* before use.
+
+# ---------------------------------------------------------------------------
+# System users
+# ---------------------------------------------------------------------------
+users:
+  - name: elbil
+    gecos: "Elbilspriser service account"
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    # REPLACE_WITH_YOUR_PUBLIC_KEY — paste your SSH public key below.
+    ssh_authorized_keys:
+      - "# REPLACE_WITH_YOUR_PUBLIC_KEY"
+
+# ---------------------------------------------------------------------------
+# Package sources
+# ---------------------------------------------------------------------------
+apt:
+  sources:
+    # TimescaleDB apt repo for Debian 12
+    timescaledb:
+      source: "deb https://packagecloud.io/timescale/timescaledb/debian/ bookworm main"
+      keyid: 9AD8961CC0356F0D  # packagecloud.io signing key
+    # PostGIS is in the standard Debian repos — no extra source needed.
+
+# ---------------------------------------------------------------------------
+# Package installation
+# ---------------------------------------------------------------------------
+packages:
+  - curl
+  - git
+  - nginx
+  - postgresql-15
+  - postgresql-15-postgis-3          # PostGIS extension
+  - timescaledb-2-postgresql-15      # TimescaleDB extension
+  - python3.12
+  - python3.12-venv
+  - build-essential
+
+package_update: true
+package_upgrade: true
+
+# ---------------------------------------------------------------------------
+# File writes
+# ---------------------------------------------------------------------------
+write_files:
+  # Nginx reverse proxy — replace server_name with your domain or IP.
+  - path: /etc/nginx/sites-available/elbilspriser
+    content: |
+      server {
+          listen 80;
+          # REPLACE_WITH_YOUR_DOMAIN_OR_IP
+          server_name _;
+
+          location / {
+              proxy_pass http://127.0.0.1:8000;
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              proxy_read_timeout 60s;
+          }
+      }
+
+  # One-shot setup service — runs git clone + uv sync on first boot.
+  # REPLACE_WITH_REPO_URL with the actual git repository URL.
+  - path: /etc/systemd/system/elbilspriser-setup.service
+    content: |
+      [Unit]
+      Description=First-boot setup for Elbilspriser
+      After=network-online.target
+      Wants=network-online.target
+      ConditionPathExists=!/opt/elbilspriser/.setup-done
+
+      [Service]
+      Type=oneshot
+      User=elbil
+      Environment=HOME=/home/elbil
+      ExecStart=/bin/bash -c '\
+        git clone REPLACE_WITH_REPO_URL /opt/elbilspriser && \
+        cd /opt/elbilspriser/backend && \
+        /home/elbil/.local/bin/uv sync --python python3.12 && \
+        /home/elbil/.local/bin/uv run playwright install chromium && \
+        touch /opt/elbilspriser/.setup-done'
+      RemainAfterExit=yes
+
+      [Install]
+      WantedBy=multi-user.target
+
+# ---------------------------------------------------------------------------
+# Shell commands run as root after packages are installed
+# ---------------------------------------------------------------------------
+runcmd:
+  # --- uv (Python package manager) ---
+  - curl -LsSf https://astral.sh/uv/install.sh | sudo -u elbil sh
+
+  # --- Playwright system dependencies (Chromium) ---
+  # Installed after uv so we can use it via uv run.
+  # The actual `playwright install chromium` runs inside elbilspriser-setup.service.
+  - /home/elbil/.local/bin/uv tool run --from playwright playwright install-deps chromium || true
+
+  # --- TimescaleDB: tell PostgreSQL to preload it ---
+  - echo "shared_preload_libraries = 'timescaledb'" >> /etc/postgresql/15/main/postgresql.conf
+  - systemctl restart postgresql
+
+  # --- PostgreSQL: create role, database, and extensions ---
+  - |
+    sudo -u postgres psql <<'SQL'
+      CREATE ROLE elbil WITH LOGIN PASSWORD 'REPLACE_WITH_DB_PASSWORD';
+      CREATE DATABASE elbilspriser OWNER elbil;
+      \c elbilspriser
+      CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
+      CREATE EXTENSION IF NOT EXISTS postgis;
+    SQL
+
+  # --- Application directory ---
+  - install -d -o elbil -g elbil /opt/elbilspriser
+
+  # --- Nginx: enable site, remove default ---
+  - ln -sf /etc/nginx/sites-available/elbilspriser /etc/nginx/sites-enabled/elbilspriser
+  - rm -f /etc/nginx/sites-enabled/default
+  - systemctl enable --now nginx
+  - nginx -t && systemctl reload nginx
+
+  # --- First-boot setup service ---
+  - systemctl daemon-reload
+  - systemctl enable elbilspriser-setup.service
+  - systemctl start elbilspriser-setup.service

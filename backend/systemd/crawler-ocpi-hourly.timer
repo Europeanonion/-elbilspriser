@@ -1,0 +1,11 @@
+[Unit]
+Description=Run OCPI crawlers every 60 minutes
+
+[Timer]
+OnCalendar=*:00
+AccuracySec=60s
+Persistent=true
+Unit=crawler-ocpi-hourly.service
+
+[Install]
+WantedBy=timers.target

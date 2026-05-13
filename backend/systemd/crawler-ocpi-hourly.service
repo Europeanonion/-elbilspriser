@@ -1,0 +1,12 @@
+[Unit]
+Description=OCPI price crawlers — Spirii and Monta (single run)
+After=network.target postgresql.service
+
+[Service]
+Type=oneshot
+User=elbil
+WorkingDirectory=/opt/elbilspriser/backend
+EnvironmentFile=/opt/elbilspriser/.env
+# Run OCPI crawlers sequentially so DB load is spread out.
+ExecStart=/opt/elbilspriser/.venv/bin/python -m crawlers.spirii
+ExecStart=/opt/elbilspriser/.venv/bin/python -m crawlers.monta

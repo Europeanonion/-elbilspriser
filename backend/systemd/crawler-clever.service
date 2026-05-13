@@ -1,0 +1,10 @@
+[Unit]
+Description=Clever price crawler (single run)
+After=network.target postgresql.service
+
+[Service]
+Type=oneshot
+User=elbil
+WorkingDirectory=/opt/elbilspriser/backend
+EnvironmentFile=/opt/elbilspriser/.env
+ExecStart=/opt/elbilspriser/.venv/bin/python -m crawlers.clever

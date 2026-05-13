@@ -1,0 +1,15 @@
+[Unit]
+Description=Elbilspriser FastAPI
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=elbil
+WorkingDirectory=/opt/elbilspriser/backend
+EnvironmentFile=/opt/elbilspriser/.env
+ExecStart=/opt/elbilspriser/.venv/bin/uvicorn api.main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
