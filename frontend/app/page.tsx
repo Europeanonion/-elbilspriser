@@ -20,7 +20,7 @@ interface Price {
 }
 
 async function getPrices(): Promise<Price[]> {
-  const url = `${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/v1/prices`
+  const url = `${process.env.BACKEND_URL ?? 'http://localhost:8000'}/api/v1/prices`
   try {
     const res = await fetch(url, { next: { revalidate: 900 } })
     if (!res.ok) throw new Error(`API ${res.status}`)

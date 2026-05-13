@@ -18,7 +18,7 @@ interface Station {
 }
 
 async function getStations(): Promise<Station[]> {
-  const url = `${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/v1/stations`
+  const url = `${process.env.BACKEND_URL ?? 'http://localhost:8000'}/api/v1/stations`
   try {
     const res = await fetch(url, { next: { revalidate: 900 } })
     if (!res.ok) throw new Error(`API ${res.status}`)
