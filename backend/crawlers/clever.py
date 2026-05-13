@@ -176,7 +176,7 @@ def _parse_record(
             price_min=None,
             session_fee=None,
             currency="DKK",
-            source_raw=record,
+            source_raw={},
         )
         if price_kwh is not None
         else None
