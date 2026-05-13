@@ -20,7 +20,7 @@ interface Price {
 }
 
 async function getPrices(): Promise<Price[]> {
-  const url = `${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/v1/prices?lat=56.0&lon=10.0&radius_km=500`
+  const url = `${process.env.NEXT_PUBLIC_API_URL ?? ''}/api/v1/prices`
   try {
     const res = await fetch(url, { next: { revalidate: 900 } })
     if (!res.ok) throw new Error(`API ${res.status}`)

@@ -48,30 +48,37 @@ _STATIONS_WITH_PRICE_SQL = text(
 
 _KM_PER_DEGREE_LAT = 111.0
 
+# Geographic bounding box covering all of Denmark (mainland + Bornholm).
+# Used as the default when no lat/lon/radius_km is supplied.
+_DK_BBOX = {"lat_min": 54.5, "lat_max": 57.8, "lon_min": 7.9, "lon_max": 15.2}
 
-def _degree_delta(radius_km: float, lat: float) -> tuple[float, float]:
+
+def _bbox_from_radius(radius_km: float, lat: float, lon: float) -> dict[str, float]:
     lat_delta = radius_km / _KM_PER_DEGREE_LAT
     lon_delta = radius_km / (_KM_PER_DEGREE_LAT * math.cos(math.radians(lat)))
-    return lat_delta, lon_delta
+    return {
+        "lat_min": lat - lat_delta,
+        "lat_max": lat + lat_delta,
+        "lon_min": lon - lon_delta,
+        "lon_max": lon + lon_delta,
+    }
 
 
 @router.get("/stations")
 async def list_stations(
     db: DBSession,
-    lat: float = Query(..., description="Centre latitude"),
-    lon: float = Query(..., description="Centre longitude"),
-    radius_km: float = Query(25.0, gt=0, le=200),
+    lat: float | None = Query(None, description="Centre latitude — omit for all of Denmark"),
+    lon: float | None = Query(None, description="Centre longitude — omit for all of Denmark"),
+    radius_km: float | None = Query(None, gt=0, le=500),
 ) -> list[dict[str, Any]]:
-    lat_delta, lon_delta = _degree_delta(radius_km, lat)
+    if lat is not None and lon is not None and radius_km is not None:
+        bbox = _bbox_from_radius(radius_km, lat, lon)
+    else:
+        bbox = _DK_BBOX
 
     rows = await db.execute(
         _STATIONS_WITH_PRICE_SQL,
-        {
-            "lat_min": lat - lat_delta,
-            "lat_max": lat + lat_delta,
-            "lon_min": lon - lon_delta,
-            "lon_max": lon + lon_delta,
-        },
+        bbox,
     )
 
     return [
