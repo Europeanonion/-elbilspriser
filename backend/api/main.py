@@ -31,7 +31,7 @@ app = FastAPI(
 # Tighten allowed origins once a frontend domain is known.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://frontend-psi-lac-evpzpfm4qz.vercel.app"],
     allow_methods=["GET"],
     allow_headers=["*"],
 )
