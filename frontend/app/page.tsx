@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { PriceTable } from '@/components/price-table'
 
 export const revalidate = 900
@@ -39,6 +40,12 @@ export default async function HomePage() {
       <h1 className="text-3xl font-bold mb-2">Sammenlign ladepriser i realtid</h1>
       <p className="text-muted-foreground mb-6">
         Aktuelle ladepriser fra {prices.length > 0 ? 'alle større' : 'de fleste'} operatører i Danmark. Opdateres hvert 15. minut.
+      </p>
+      <p className="text-sm text-muted-foreground mb-6">
+        Betaler du for meget?{' '}
+        <Link href="/beregner" className="underline hover:text-foreground">
+          Beregn dit bedste abonnement →
+        </Link>
       </p>
       <PriceTable prices={prices} />
     </div>

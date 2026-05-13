@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import SmallInteger, bindparam, text
 
 from api.deps import DBSession
@@ -56,6 +56,40 @@ def _bbox_from_radius(radius_km: float, lat: float, lon: float) -> dict[str, flo
         "lat_max": lat + lat_delta,
         "lon_min": lon - lon_delta,
         "lon_max": lon + lon_delta,
+    }
+
+
+_OPERATOR_PRICE_SQL = text(
+    """
+    SELECT
+        AVG(price_kwh)  AS price_kwh,
+        MAX(time)       AS updated_at,
+        COUNT(*)        AS station_count
+    FROM (
+        SELECT DISTINCT ON (station_id)
+            price_kwh, time
+        FROM price_snapshots
+        WHERE operator_id = :operator_id
+        ORDER BY station_id, time DESC
+    ) latest
+    """
+).bindparams(bindparam("operator_id", type_=SmallInteger()))
+
+
+@router.get("/operator-price")
+async def operator_price(
+    db: DBSession,
+    operator_id: int = Query(1),
+) -> dict[str, Any]:
+    row = (await db.execute(_OPERATOR_PRICE_SQL, {"operator_id": operator_id})).one_or_none()
+    if row is None or row.price_kwh is None:
+        raise HTTPException(status_code=404, detail="No price data for operator")
+    return {
+        "operator_id": operator_id,
+        "operator": _OPERATOR_NAMES.get(operator_id, str(operator_id)),
+        "price_kwh": float(row.price_kwh),
+        "updated_at": row.updated_at.isoformat(),
+        "station_count": row.station_count,
     }
 
 

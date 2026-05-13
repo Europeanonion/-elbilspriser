@@ -6,8 +6,8 @@ import { cn } from '@/lib/utils'
 
 const links = [
   { href: '/', label: 'Priser' },
-  { href: '/map', label: 'Kort' },
   { href: '/beregner', label: 'Beregner' },
+  { href: '/map', label: 'Kort' },
 ]
 
 export function Nav() {
