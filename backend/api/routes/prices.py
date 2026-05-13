@@ -6,7 +6,7 @@ from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Query
-from sqlalchemy import text
+from sqlalchemy import SmallInteger, bindparam, text
 
 from api.deps import DBSession
 
@@ -33,12 +33,12 @@ _LATEST_PRICES_SQL = text(
     FROM price_snapshots ps
     JOIN stations s ON s.id = ps.station_id
     WHERE
-        (:operator_id::smallint IS NULL OR ps.operator_id = :operator_id::smallint)
+        (:operator_id IS NULL OR ps.operator_id = :operator_id)
         AND s.lat BETWEEN :lat_min AND :lat_max
         AND s.lon BETWEEN :lon_min AND :lon_max
     ORDER BY ps.station_id, ps.time DESC
     """
-)
+).bindparams(bindparam("operator_id", type_=SmallInteger()))
 
 _KM_PER_DEGREE_LAT = 111.0
 
