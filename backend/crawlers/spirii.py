@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 
 from crawlers.base import BaseCrawler
 from crawlers.ocpi_client import OCPIClient
-from db.models import PriceSnapshot
+from db.models import PriceSnapshot, Station
 
 logger = logging.getLogger(__name__)
 
@@ -30,14 +30,16 @@ class SpiriiCrawler(BaseCrawler):
         logger.info("Spirii: fetched %d locations", len(locations))
         return locations
 
-    async def parse(self, raw: list[dict]) -> list[PriceSnapshot]:
-        # TODO: parse OCPI Location objects into PriceSnapshot rows.
-        logger.warning("Spirii parse() not yet implemented — returning empty list")
-        return []
+    async def parse(self, raw: list[dict]) -> tuple[list[Station], list[PriceSnapshot]]:
+        # TODO: parse OCPI Location objects into Station + PriceSnapshot rows.
+        logger.warning("Spirii parse() not yet implemented — returning empty")
+        return [], []
 
 
 async def main() -> None:
     logging.basicConfig(level=logging.INFO)
+    from db.session import init_engine
+    await init_engine()
     crawler = SpiriiCrawler()
     await crawler.run()
 

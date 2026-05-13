@@ -12,8 +12,8 @@ from tenacity import (
     wait_exponential,
 )
 
-from db.models import PriceSnapshot
-from db.session import async_session_factory
+import db.session
+from db.models import PriceSnapshot, Station
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +27,8 @@ class BaseCrawler(ABC):
         ...
 
     @abstractmethod
-    async def parse(self, raw: list[dict]) -> list[PriceSnapshot]:
-        """Transform raw dicts into ORM instances ready for upsert."""
+    async def parse(self, raw: list[dict]) -> tuple[list[Station], list[PriceSnapshot]]:
+        """Transform raw dicts into (stations, snapshots) pairs ready for upsert."""
         ...
 
     async def _fetch_with_retry(self) -> list[dict]:
@@ -50,16 +50,22 @@ class BaseCrawler(ABC):
         t0 = time.monotonic()
 
         raw = await self._fetch_with_retry()
-        snapshots = await self.parse(raw)
+        stations, snapshots = await self.parse(raw)
 
-        async with async_session_factory() as session:
-            session.add_all(snapshots)
-            await session.commit()
+        if stations or snapshots:
+            async with db.session.async_session_factory() as session:
+                # Upsert stations first to satisfy the FK constraint on price_snapshots.
+                for station in stations:
+                    await session.merge(station)
+                await session.flush()
+                session.add_all(snapshots)
+                await session.commit()
 
         elapsed = time.monotonic() - t0
         logger.info(
-            "[%s] crawl done — %d snapshots upserted in %.1fs",
+            "[%s] crawl done — %d stations, %d snapshots in %.1fs",
             self.name,
+            len(stations),
             len(snapshots),
             elapsed,
         )

@@ -8,5 +8,5 @@ User=elbil
 WorkingDirectory=/opt/elbilspriser/backend
 EnvironmentFile=/opt/elbilspriser/.env
 # Run OCPI crawlers sequentially so DB load is spread out.
-ExecStart=/opt/elbilspriser/.venv/bin/python -m crawlers.spirii
-ExecStart=/opt/elbilspriser/.venv/bin/python -m crawlers.monta
+ExecStart=/opt/elbilspriser/backend/.venv/bin/python -m crawlers.spirii
+ExecStart=/opt/elbilspriser/backend/.venv/bin/python -m crawlers.monta

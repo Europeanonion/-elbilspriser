@@ -7,4 +7,4 @@ Type=oneshot
 User=elbil
 WorkingDirectory=/opt/elbilspriser/backend
 EnvironmentFile=/opt/elbilspriser/.env
-ExecStart=/opt/elbilspriser/.venv/bin/python -m crawlers.clever
+ExecStart=/opt/elbilspriser/backend/.venv/bin/python -m crawlers.clever

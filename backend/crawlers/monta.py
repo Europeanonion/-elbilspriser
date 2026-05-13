@@ -13,7 +13,7 @@ import os
 
 from crawlers.base import BaseCrawler
 from crawlers.ocpi_client import OCPIClient
-from db.models import PriceSnapshot
+from db.models import PriceSnapshot, Station
 
 logger = logging.getLogger(__name__)
 
@@ -32,14 +32,16 @@ class MontaCrawler(BaseCrawler):
         logger.info("Monta: fetched %d locations", len(locations))
         return locations
 
-    async def parse(self, raw: list[dict]) -> list[PriceSnapshot]:
-        # TODO: parse Monta charge point objects into PriceSnapshot rows.
-        logger.warning("Monta parse() not yet implemented — returning empty list")
-        return []
+    async def parse(self, raw: list[dict]) -> tuple[list[Station], list[PriceSnapshot]]:
+        # TODO: parse Monta charge point objects into Station + PriceSnapshot rows.
+        logger.warning("Monta parse() not yet implemented — returning empty")
+        return [], []
 
 
 async def main() -> None:
     logging.basicConfig(level=logging.INFO)
+    from db.session import init_engine
+    await init_engine()
     crawler = MontaCrawler()
     await crawler.run()
 
